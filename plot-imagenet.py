@@ -1,34 +1,71 @@
 import svgwrite as svg
 import xml.etree.ElementTree as et
-import os
+import os, configparser, sys, platform
 from PIL import Image
 
-projectname = "test"
-imgpath = "img/"
-datapath = "data/"
-outputspath = "outputs/" + projectname + "/"
-outputsimgpath = outputspath + "img/"
+sys.tracebacklimit = 0
 
-restrictPage = True
-resizeImage = False
+if platform.system() == 'Windows':
+    iswindows = True
+    slash = '\\'
+else:
+    iswindows = False
+    slash = '/'
 
-insvg = et.parse(datapath + "wcdraw_images-label_tagcloud.svg")
+# Config parser
 
-if not os.path.exists(outputspath):
-        os.makedirs(outputspath)
-if not os.path.exists(outputsimgpath):
-        os.makedirs(outputsimgpath)
+settings = configparser.ConfigParser()
 
-imgmaxdim = 100, 100
+try:
+    settings.read('config.ini')
+except Exception:
+    sys.exit('\n**ERROR**\nCould not open configuration file. It should be in the same folder as the script and named \'config.ini\'\n')
 
-outsvgw = 15000
-outsvgh = 15000
+print("\n-------------------------\nImage Network Plotter\n-------------------------")
+
+
+projectfolder   = settings['Project']['ProjectName'] + slash
+inputimgfolder  = projectfolder + settings['Folders']['InputImgFolder'] + slash
+thumbnailimgfolder    = projectfolder + settings['Folders']['ResizedImgFolder'] + slash
+
+
+inputfilename = projectfolder + settings['Input']['InputFile']
+justImages = settings['Input']['JustImages']
+valuesep = settings['Input']['ValueSeparator']
+
+outputfilename = projectfolder + "visual_" + settings['Input']['InputFile']
+
+imgresizewidth = int(settings['Output']['ResizeMaxWidth'])
+imgresizeheight = int(settings['Output']['ResizeMaxHeight'])
+
+imgdrawwidth = int(settings['Output']['ImageMaxDispWidth'])
+imgdrawheight= int(settings['Output']['ImageMaxDispHeight'])
+
+outsvgw = int(settings['Output']['OutputWidth'])
+outsvgh = int(settings['Output']['OutputHeight'])
+
+restrictPage = settings['Output']['RestricttoPage']
+resizeImage = settings['Output']['CopyImagesResized']
+
+# Set internal variables
+
+imgresizedim = imgresizewidth, imgresizeheight
+imgdrawdim = imgdrawwidth, imgdrawheight
+
+insvg = et.parse(inputfilename)
+
+if not os.path.exists(thumbnailimgfolder):
+        os.makedirs(thumbnailimgfolder)
 
 # ---------
+
+# Start parsing the SVG
 
 inroot = insvg.getroot()
 ns = {'svg' : "http://www.w3.org/2000/svg" }
 inimages = inroot.find("svg:g", ns)
+
+# Find graph bounding box and count images
 numimages = 0
 
 minx = 0
@@ -59,6 +96,7 @@ print("Minimum Y: " + str(miny))
 print("Maximum Y: " + str(maxy))
 
 # --------
+# Configure output conversion
 
 inw = maxx - minx
 inh = maxy - miny
@@ -75,41 +113,76 @@ outh = inh * outfactor
 outx = (outsvgw - outw)/2
 outy = (outsvgh - outh)/2
 
-outsvg = svg.Drawing(outputspath + "test.svg", (outsvgw,outsvgh), debug=True)
+# --------
+# Draw output
 
-for image in inimages:
-    filename = image.text.strip()
-    infile = imgpath + filename
+outsvg = svg.Drawing(outputfilename, (outsvgw,outsvgh), debug=True)
+curimg = 1
 
-    try:
-        curimage = Image.open(infile)
-    except Exception:
-        print("Image could not be loaded.\n")
-        continue
+for node in inimages:
+    print("\n\nDrawing node " + str(curimg) + " in " + str(numimages))
+    curimg += 1
 
-    outfile = outputsimgpath + filename
-    if resizeImage:
-        print("Resizing image...")
-        curimage.thumbnail(imgmaxdim, Image.ANTIALIAS)
-        curimage.save(outfile)
-
-    print("Plotting image...\n")
+    innodex = (float(node.get('x'))-minx)/inw
+    innodey = (float(node.get('y'))-miny)/inh
 
     if restrictPage:
-        inimgx = (float(image.get('x'))-minx)/inw
-        inimgy = (float(image.get('y'))-miny)/inh
-        outimgx = (inimgx * outw) + outx
-        outimgy = (inimgy * outh) + outy
+        outnodex = (innodex * outw) + outx
+        outnodey = (innodey * outh) + outy
     else:
-        outimgx = inimgx
-        outimgy = inimgy
-    link = outsvg.add(outsvg.a(infile))
-    image = link.add(outsvg.image(outfile, insert=(outimgx, outimgy)))
+        outnodex = innodex
+        outnodey = innodey
+
+    if justImages:
+        infile = inputimgfolder + node.text.strip()
+        print("\tLoading image: " + infile)
+        try:
+            curimage = Image.open(infile)
+        except Exception:
+            print("\tImage could not be loaded.\n")
+            continue
+
+        if resizeImage:
+            outfile = thumbnailimgfolder + node.text.strip()
+            print("\tResizing image...")
+            curimage.thumbnail(imgresizedim, Image.ANTIALIAS)
+            curimage.save(outfile)
+        else:
+            outfile = infile
+
+        print("\tPlotting image...\n")
+
+        link = outsvg.add(outsvg.a(settings['Folders']['InputImgFolder'] + slash + node.text.strip()))
+        image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=imgdrawdim))
+
+    else:
+        textcomponents = node.text.strip().split(',')
+        nodetype = textcomponents[0]
+
+        if nodetype == 'image':
+            infile = inputimgfolder + textcomponents[1]
+            try:
+                curimage = Image.open(infile)
+            except Exception:
+                print("\tImage could not be loaded.\n")
+                continue
+
+            if resizeImage:
+                outfile = thumbnailimgfolder + textcomponents[1]
+                print("\tResizing image...")
+                curimage.thumbnail(imgresizedim, Image.ANTIALIAS)
+                curimage.save(outfile)
+            else:
+                outfile = infile
+
+            print("\tPlotting image...\n")
+
+            link = outsvg.add(settings['Folders']['InputImgFolder'] + slash + node.text.strip())
+            image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=(200,200)))
+
+        elif nodetype == 'gv_label':
+            label = textcomponents[2]
+            print("\tPlotting node...\n")
+            text = outsvg.add(outsvg.text(label, insert=(outnodex, outnodey),style=("font-size:40px; font-weight:bold")))
 
 outsvg.save(pretty=True)
-
-#
-# dwg = svg.Drawing("test.svg", (400,400), debug=True)
-# link = dwg.add(dwg.a("http://ufmg.br"))
-# image = link.add(dwg.image("https://ufmg.br/thumbor/alr9PWRv0IW7Dc4022rBn7nuF8I=/480x341/smart/https://ufmg.br/storage/5/4/8/5/5485babb8c510fd85b5099cf23f5938b_15162661728518_740131612.jpg", (100,100)))
-# dwg.save(pretty=True)
