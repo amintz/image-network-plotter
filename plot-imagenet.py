@@ -153,7 +153,7 @@ for node in inimages:
         print("\tPlotting image...\n")
 
         link = outsvg.add(outsvg.a(settings['Folders']['InputImgFolder'] + slash + node.text.strip()))
-        image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=imgdrawdim))
+        image = link.add(outsvg.image(settings['Folders']['ResizedImgFolder'] + slash + node.text.strip(), insert=(outnodex, outnodey), size=imgdrawdim))
 
     else:
         textcomponents = node.text.strip().split(',')
