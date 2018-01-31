@@ -1,5 +1,5 @@
 img/
 outputs/
 data/
-*.jpg
-**
+
+config.ini
