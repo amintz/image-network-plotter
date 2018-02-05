@@ -3,6 +3,14 @@ import xml.etree.ElementTree as et
 import os, configparser, sys, platform
 from PIL import Image
 
+def yn (answer):
+    if answer.lower() == "yes":
+        return True
+    elif answer.lower() == "no":
+        return False
+    else:
+        sys.exit('\n**ERROR**\nCheck config file. Some settings only take yes or no\n')
+
 sys.tracebacklimit = 0
 
 if platform.system() == 'Windows':
@@ -23,14 +31,20 @@ except Exception:
 
 print("\n-------------------------\nImage Network Plotter\n-------------------------")
 
+absoluteinputpath = yn(settings['Folders']['AbsoluteInputImgPath'])
 
-projectfolder   = settings['Project']['ProjectName'] + slash
-inputimgfolder  = projectfolder + settings['Folders']['InputImgFolder'] + slash
+projectfolder   = "data" + slash + settings['Project']['ProjectName'] + slash
+
+if absoluteinputpath:
+    inputimgfolder  =  settings['Folders']['InputImgFolder'] + slash
+else:
+    inputimgfolder  = projectfolder + settings['Folders']['InputImgFolder'] + slash
+
 thumbnailimgfolder    = projectfolder + settings['Folders']['ResizedImgFolder'] + slash
 
 
 inputfilename = projectfolder + settings['Input']['InputFile']
-justImages = settings['Input']['JustImages']
+justImages = yn(settings['Input']['JustImages'])
 valuesep = settings['Input']['ValueSeparator']
 
 outputfilename = projectfolder + "visual_" + settings['Input']['InputFile']
@@ -44,8 +58,9 @@ imgdrawheight= int(settings['Output']['ImageMaxDispHeight'])
 outsvgw = int(settings['Output']['OutputWidth'])
 outsvgh = int(settings['Output']['OutputHeight'])
 
-restrictPage = settings['Output']['RestricttoPage']
-resizeImage = settings['Output']['CopyImagesResized']
+restrictPage = yn(settings['Output']['RestricttoPage'])
+resizeImage = yn(settings['Output']['CopyImagesResized'])
+
 
 # Set internal variables
 
@@ -177,12 +192,12 @@ for node in inimages:
 
             print("\tPlotting image...\n")
 
-            link = outsvg.add(settings['Folders']['InputImgFolder'] + slash + node.text.strip())
+            link = outsvg.add(outsvg.a(textcomponents[2]))
             image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=(200,200)))
 
-        elif nodetype == 'gv_label':
-            label = textcomponents[2]
-            print("\tPlotting node...\n")
-            text = outsvg.add(outsvg.text(label, insert=(outnodex, outnodey),style=("font-size:40px; font-weight:bold")))
+        # elif nodetype == 'gv_label':
+        #     label = textcomponents[2]
+        #     print("\tPlotting node...\n")
+        #     text = outsvg.add(outsvg.text(label, insert=(outnodex, outnodey),style=("font-size:40px; font-weight:bold")))
 
 outsvg.save(pretty=True)
