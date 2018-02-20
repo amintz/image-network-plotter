@@ -1,6 +1,6 @@
 import svgwrite as svg
 import xml.etree.ElementTree as et
-import os, configparser, sys, platform
+import os, configparser, sys, platform, traceback
 from PIL import Image
 
 def main():
@@ -184,6 +184,7 @@ def main():
                     outnodex = innodex
                     outnodey = innodey
 
+                nodeid = node.get('id')
                 imgfile = node.find("gexf:attvalues/gexf:attvalue[@for=\'" + str(fileAttId) +"\']",ns).get('value')
                 linkUrl = node.find("gexf:attvalues/gexf:attvalue[@for=\'" + str(linkAttId) +"\']",ns).get('value')
 
@@ -206,7 +207,7 @@ def main():
                 print("\tPlotting image...\n")
 
                 link = outsvg.add(outsvg.a(linkUrl))
-                image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=imgdrawdim))
+                image = link.add(outsvg.image(outfile, id=nodeid, insert=(outnodex, outnodey), size=imgdrawdim))
 
         outsvg.save(pretty=True)
     except KeyboardInterrupt:
