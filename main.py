@@ -206,8 +206,8 @@ def main():
 
                 print("\tPlotting image...\n")
 
-                link = outsvg.add(outsvg.a(linkUrl))
-                image = link.add(outsvg.image(outfile, id=nodeid, insert=(outnodex, outnodey), size=imgdrawdim))
+                link = outsvg.add(outsvg.a(linkUrl,id=nodeid))
+                image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=imgdrawdim))
 
         outsvg.save(pretty=True)
     except KeyboardInterrupt:
