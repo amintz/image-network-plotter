@@ -37,9 +37,9 @@ Run the script "plotter.py" in a terminal window. To run in terminal, move to th
 ```
 python plotter.py
 ```
-or, depending on how your Python is installed:
+or, depending on how your Python is installed
 ```
-pythone plotter.py
+python3 plotter.py
 ```
 Check the terminal for possible errors and for progress reporting.
 
