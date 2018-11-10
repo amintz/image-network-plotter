@@ -234,22 +234,22 @@ def main():
                     continue
 
                 if settings['copyresized']:
-                    outfile = os.path.join(outimgdir, imgfile)
+                    imgfp = os.path.join(outimgdir, imgfile)
                     print("\tResizing image...")
                     try:
                         curimage.thumbnail(imgresizedim, Image.ANTIALIAS)
-                        curimage.save(outfile)
+                        curimage.save(imgfp)
                     except Exception as exc:
                         print("\t**ATTENTION** Problem resizing image.\n")
                         print(exc)
                         continue
                 else:
-                    outfile = infile
+                    imgfp = infile
 
                 print("\tPlotting image...\n")
 
                 link = outsvg.add(outsvg.a(linkUrl,id=nodeid))
-                image = link.add(outsvg.image(outfile, insert=(outnodex, outnodey), size=imgdrawdim))
+                image = link.add(outsvg.image(imgfp, insert=(outnodex, outnodey), size=imgdrawdim))
 
         outsvg.save(pretty=True)
     except KeyboardInterrupt:
