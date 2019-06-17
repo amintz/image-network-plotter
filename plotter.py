@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import svgwrite as svg
 import xml.etree.ElementTree as et
 import os, configparser, argparse, sys, platform, traceback
@@ -55,34 +56,6 @@ def main():
 
         print("\n-------------------------\nImage Network Plotter\n-------------------------")
         loadSettings()
-        # try:
-        #     dir_path        = os.path.dirname(os.path.realpath(__file__))
-        #     absolutepath    = yn(settings['Input']['AbsolutePath'])
-        #
-        #     if absolutepath:
-        #         projectfolder   = settings['Input']['ProjectFolder'] + slash
-        #     else:
-        #         projectfolder   = dir_path + slash + settings['Input']['ProjectFolder'] + slash
-        #
-        #     inputimgfolder  = projectfolder + settings['Folders']['InputImgFolder'] + slash
-        #     thumbnailimgfolder    = projectfolder + settings['Folders']['ResizedImgFolder'] + slash
-        #
-        #     inputfilename = projectfolder + settings['Input']['InputFile']
-        #     outputfilename = projectfolder + "visual_" + settings['Input']['InputFile'].split(".")[0] + ".svg"
-        #
-        #     imgresizewidth = int(settings['Output']['ResizeMaxWidth'])
-        #     imgresizeheight = int(settings['Output']['ResizeMaxHeight'])
-        #
-        #     imgdrawwidth = int(settings['Output']['ImageMaxDispWidth'])
-        #     imgdrawheight= int(settings['Output']['ImageMaxDispHeight'])
-        #
-        #     outsvgw = int(settings['Output']['OutputWidth'])
-        #     outsvgh = int(settings['Output']['OutputHeight'])
-        #
-        #     restrictPage = yn(settings['Output']['RestricttoPage'])
-        #     resizeImage = yn(settings['Output']['CopyImagesResized'])
-        # except Exception:
-        #     sys.exit("\n**ERROR**\nCould not parse at least one of the settings from the config file. Please verify its contents carefully.")
 
         # ------------------------------------------
         # Set internal variables
@@ -126,10 +99,6 @@ def main():
         graph = inroot.find("gexf:graph", ns)
         if not graph:
             sys.exit("\n**ERROR**\nCould not parse graph file.\n")
-        #     ns = {'gexf' : "http://www.gexf.net/1.1draft"}
-        #     viz = {'viz' : "http://www.gexf.net/1.1draft/viz"}
-        #     print("\n** ALERT **\nGraph seems to not have been spatialized in Gephi. Results might be unsatisfactory.")
-        #     graph = inroot.find("gexf:graph", ns)
 
         attributes = graph.find(".gexf:attributes",ns)
 
